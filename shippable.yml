@@ -1,0 +1,17 @@
+language: c
+
+env:
+  global:
+   - CROSS_ARCH="arm64"
+   - CONF=""
+
+build:
+  pre_ci_boot:
+    image_name: drydockaarch64/u16pyt
+    image_tag: master
+    pull: true
+  ci:
+   - gem install asciidoctor
+   - ./bootstrap
+   - ./configure
+   - make install
