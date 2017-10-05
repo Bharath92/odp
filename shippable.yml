@@ -4,12 +4,13 @@ env:
    - CONF=""
 
 build:
+  pre_ci:
+    - docker build -t=odp/dev .
   pre_ci_boot:
-    image_name: drydockaarch64/u16pyt
-    image_tag: master
-    pull: true
+    image_name: odp/dev
+    image_tag: latest
+    pull: false
   ci:
-   - sudo apt-get install -yy clang graphviz imagemagick ruby-dev
    - gem install asciidoctor
    - ./bootstrap
    - ./configure --prefix=$HOME/odp-install
