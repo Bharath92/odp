@@ -1,5 +1,3 @@
-language: c
-
 env:
   global:
    - CROSS_ARCH="arm64"
@@ -11,7 +9,18 @@ build:
     image_tag: master
     pull: true
   ci:
+   - sudo apt-get install -yy clang graphviz imagemagick ruby-dev
    - gem install asciidoctor
    - ./bootstrap
-   - ./configure
+   - ./configure --prefix=$HOME/odp-install
+     --enable-user-guides
+     --enable-debug=full
+     --enable-helper-linux
+     $CROSS $EXTRA_CONF $CONF
+   - make -j $(nproc)
    - make install
+   - echo "Checking linking and run from install..."
+   - echo "Dynamic link.."
+   - gcc example/hello/odp_hello.c -o odp_hello_inst_dynamic `PKG_CONFIG_PATH=$HOME/odp-install/lib/pkgconfig:${PKG_CONFIG_PATH} pkg-config --cflags --libs libodp-linux`
+   - echo "Static link.."
+   - gcc example/hello/odp_hello.c -o odp_hello_inst_static `PKG_CONFIG_PATH=$HOME/odp-install/lib/pkgconfig:${PKG_CONFIG_PATH} pkg-config --cflags --libs libodp-linux --static` -static
