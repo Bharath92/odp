@@ -5,7 +5,7 @@ env:
 
 build:
   pre_ci:
-    - docker build -t=odp/dev .
+   - docker build -t=odp/dev .
   pre_ci_boot:
     image_name: odp/dev
     image_tag: latest
@@ -76,38 +76,17 @@ build:
    - gem install asciidoctor
 
 #	DPDK pktio. Note that cache must be purged if dpdk version changes.
-   - TARGET=${TARGET:-"arm64-armv8a-linuxapp-gcc"}
-   - |
-     if [ ! -f "dpdk/${TARGET}/lib/libdpdk.a" ]; then
-       git -c advice.detachedHead=false clone -q --depth=1 --single-branch --branch=v17.02 http://dpdk.org/git/dpdk dpdk
-       pushd dpdk
-       git log --oneline --decorate
-       make config T=${TARGET} O=${TARGET}
-       pushd ${TARGET}
-       sed -ri 's,(CONFIG_RTE_LIBRTE_PMD_PCAP=).*,\1y,' .config
-       popd
-       make install T=${TARGET} EXTRA_CFLAGS="-fPIC"
-       rm -r ./doc ./${TARGET}/app ./${TARGET}/build
-       popd
-     fi
-
 #	Netmap pktio
-   - |
-     if [ ! -f "netmap/LINUX/netmap.ko" ]; then
-       git -c advice.detachedHead=false clone -q --depth=1 --single-branch --branch=v11.2 https://github.com/luigirizzo/netmap.git
-       pushd netmap/LINUX
-       ./configure
-       make
-       sudo insmod ./netmap.ko
-       popd
+   - if [ -d "/opt/dpdk" ]; then
+       echo "dpdk present";
+       EXTRA_CONF="--with-dpdk-path=/opt/dpdk";
      fi
-   - EXTRA_CONF="--with-dpdk-path=`pwd`/dpdk/${TARGET} --with-netmap-path=`pwd`/netmap" ;
+   - if [ -d "/opt/netmap" ]; then
+       echo "netmap present";
+       EXTRA_CONF="$EXTRA_CONF --with-dpdk-path=/opt/netmap";
+     fi
    - ./bootstrap
-   - ./configure --prefix=$HOME/odp-install
-     --enable-user-guides
-     --enable-debug=full
-     --enable-helper-linux
-     $CROSS $EXTRA_CONF $CONF
+   - ./configure --prefix=$HOME/odp-install --enable-user-guides --enable-debug=full --enable-helper-linux $CROSS $EXTRA_CONF $CONF
    - make -j $(nproc)
    - make install
    - echo "Checking linking and run from install..."
