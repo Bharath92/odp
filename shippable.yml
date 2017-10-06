@@ -73,17 +73,12 @@ build:
    - echo 1000 | sudo tee /proc/sys/vm/nr_hugepages
    - sudo mkdir -p /mnt/huge
    - sudo mount -t hugetlbfs nodev /mnt/huge
-   - if [ -z "$CROSS_ARCH" ] ;
-     then
-           sudo apt-get -qq update ;
-           sudo apt-get install linux-headers-`uname -r` ;
-     fi
    - gem install asciidoctor
 
 #	DPDK pktio. Note that cache must be purged if dpdk version changes.
-   - TARGET=${TARGET:-"x86_64-native-linuxapp-gcc"}
+   - TARGET=${TARGET:-"arm64-armv8a-linuxapp-gcc"}
    - |
-     if [ -z "$CROSS_ARCH" -a ! -f "dpdk/${TARGET}/lib/libdpdk.a" ]; then
+     if [ ! -f "dpdk/${TARGET}/lib/libdpdk.a" ]; then
        git -c advice.detachedHead=false clone -q --depth=1 --single-branch --branch=v17.02 http://dpdk.org/git/dpdk dpdk
        pushd dpdk
        git log --oneline --decorate
@@ -98,7 +93,7 @@ build:
 
 #	Netmap pktio
    - |
-     if [ -z "$CROSS_ARCH" -a ! -f "netmap/LINUX/netmap.ko" ]; then
+     if [ ! -f "netmap/LINUX/netmap.ko" ]; then
        git -c advice.detachedHead=false clone -q --depth=1 --single-branch --branch=v11.2 https://github.com/luigirizzo/netmap.git
        pushd netmap/LINUX
        ./configure
@@ -106,6 +101,7 @@ build:
        sudo insmod ./netmap.ko
        popd
      fi
+   - EXTRA_CONF="--with-dpdk-path=`pwd`/dpdk/${TARGET} --with-netmap-path=`pwd`/netmap" ;
    - ./bootstrap
    - ./configure --prefix=$HOME/odp-install
      --enable-user-guides
