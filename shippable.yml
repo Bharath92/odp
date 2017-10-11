@@ -5,7 +5,7 @@ env:
 
 build:
   pre_ci:
-   - docker build -t=odp/dev .
+   - docker build -t=odp/dev -f=Dockerfile2 .
   pre_ci_boot:
     image_name: odp/dev
     image_tag: latest
