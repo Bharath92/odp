@@ -11,6 +11,8 @@ build:
     image_tag: latest
     pull: false
   ci:
+   - update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 40
+   - update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 40 --slave /usr/bin/g++ g++ /usr/bin/g++-4.8
    - if [ -n "$CROSS_ARCH" ] ;
      then
              BUILD_GNU_TYPE=`dpkg-architecture -a"$CROSS_ARCH" -qDEB_BUILD_GNU_TYPE` ;
@@ -86,7 +88,8 @@ build:
        EXTRA_CONF="$EXTRA_CONF --with-dpdk-path=/opt/netmap";
      fi
    - ./bootstrap
-   - ./configure --prefix=$HOME/odp-install --enable-user-guides --enable-debug=full --enable-helper-linux $CROSS $EXTRA_CONF $CONF
+   - ./configure --prefix=$HOME/odp-install --enable-user-guides --enable-debug=full --enable-helper-linux $CROSS $EXTRA_CONF $CONF || true
+   - ./configure --prefix=$HOME/odp-install --enable-user-guides --enable-debug=full --enable-helper-linux $CROSS $CONF
    - make -j $(nproc)
    - make install
    - echo "Checking linking and run from install..."
